@@ -1,4 +1,4 @@
-# audio-watermarking-system
+
 # Audio Watermarking System
 
 A digital audio watermarking system designed to embed and extract hidden messages in audio files for copyright protection and ownership identification. The project combines Python-based audio processing with a web-based interface built using HTML, CSS, and JavaScript.
