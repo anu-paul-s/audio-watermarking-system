@@ -1,0 +1,2646 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Watermarking Lab</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --bg: #EAF1F4;
+  --surface: #FFFFFF;
+  --surface-alt: #F3F7F8;
+  --text: #172B3A;
+  --text-muted: #647783;
+  --primary: #087F8C;
+  --primary-hover: #066873;
+  --accent: #D5A84C;
+  --secondary: #4B9EAB;
+  --border: #D5E0E5;
+  --sidebar-bg: #172B3A;
+  --sidebar-text: #EAF1F4;
+  --success: #23866D;
+  --danger: #C84C5A;
+  --radius: 12px;
+  --shadow: 0 3px 12px rgba(23, 43, 58, .045);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr);
+}
+
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  min-height: 100vh;
+  padding: 25px 16px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 9px 28px;
+  border-bottom: 1px solid rgba(234,241,244,.14);
+}
+
+.brand-mark {
+  height: 38px;
+  width: 38px;
+  border-radius: 10px;
+  background: var(--primary);
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.brand-name {
+  font: 800 17px "Manrope", sans-serif;
+  letter-spacing: -.5px;
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: #AFC2CC;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.nav-label {
+  color: #91A8B5;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 25px 10px 10px;
+}
+
+.nav-item {
+  border: 0;
+  background: transparent;
+  color: #BFCED5;
+  padding: 11px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,.07);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(8,127,140,.25);
+  color: #FFFFFF;
+  box-shadow: inset 3px 0 #39B5BD;
+}
+
+.nav-icon {
+  font-size: 17px;
+  width: 22px;
+  text-align: center;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid rgba(234,241,244,.14);
+  padding: 18px 9px 0;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #51C69A;
+  display: inline-block;
+  margin-right: 7px;
+}
+
+.sidebar-status {
+  color: #C5D5DC;
+  font-size: 11px;
+}
+
+.main { min-width: 0; }
+
+.topbar {
+  height: 66px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 34px;
+}
+
+.breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.breadcrumb strong { color: var(--text); }
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.tag {
+  background: #E4F2F2;
+  color: var(--primary);
+  border-radius: 5px;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #DDE7EA;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.content {
+  max-width: 1500px;
+  padding: 30px 34px 50px;
+  margin: 0 auto;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1.7px;
+  font-size: 10px;
+  font-weight: 800;
+  margin-bottom: 9px;
+}
+
+h1, h2, h3, p { margin-top: 0; }
+
+h1 {
+  font: 800 clamp(25px, 3vw, 34px)/1.2 "Manrope", sans-serif;
+  letter-spacing: -1.2px;
+  margin-bottom: 9px;
+}
+
+.heading-description {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 650px;
+  margin-bottom: 0;
+}
+
+.heading-actions {
+  display: flex;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 14px;
+  background: white;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+  transition: .15s ease;
+}
+
+.btn:hover { background: var(--surface-alt); }
+
+.btn-primary {
+  color: white;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  color: white;
+}
+
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.btn-gold {
+  background: #F8F0DC;
+  color: #785A19;
+  border-color: #E8D6A8;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 19px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric:before {
+  content: "";
+  position: absolute;
+  height: 3px;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--primary);
+}
+
+.metric:nth-child(2):before { background: var(--accent); }
+.metric:nth-child(3):before { background: var(--secondary); }
+.metric:nth-child(4):before { background: #7B8E9B; }
+
+.metric-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.metric-value {
+  font: 600 26px "IBM Plex Mono", monospace;
+  letter-spacing: -1px;
+}
+
+.metric-foot {
+  margin-top: 8px;
+  color: #81919A;
+  font-size: 10px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(310px, .92fr);
+  gap: 19px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+  min-width: 0;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.panel-header {
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-title {
+  font: 700 14px "Manrope", sans-serif;
+  letter-spacing: -.25px;
+  margin: 0;
+}
+
+.panel-subtitle {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.panel-body { padding: 20px; }
+
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  background: #E4F2F2;
+  color: var(--primary);
+  font: 600 12px "IBM Plex Mono", monospace;
+  margin-right: 8px;
+}
+
+.upload-area {
+  border: 1.5px dashed #B9CBD2;
+  background: #F8FAFB;
+  padding: 24px 15px;
+  text-align: center;
+  border-radius: 9px;
+  transition: .2s;
+}
+
+.upload-area.dragover {
+  border-color: var(--primary);
+  background: #E4F2F2;
+}
+
+.upload-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  background: #E4F2F2;
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+  font-size: 22px;
+}
+
+.upload-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.upload-description {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.upload-filename {
+  font: 11px "IBM Plex Mono", monospace;
+  color: var(--primary);
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+.file-input { display: none; }
+
+.section-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.field { margin-bottom: 18px; }
+.field:last-child { margin-bottom: 0; }
+
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-value {
+  color: var(--primary);
+  font: 500 11px "IBM Plex Mono", monospace;
+}
+
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  background: #FAFCFC;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 7px;
+  padding: 10px 11px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(8,127,140,.1);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.field-help {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.action-row {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.action-row .btn { flex: 1; }
+
+.signal-canvas {
+  width: 100%;
+  height: 150px;
+  display: block;
+}
+
+.chart-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 9px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 215px;
+  width: 100%;
+}
+
+.chart-wrap.short { height: 185px; }
+
+.chart-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.7;
+  background: #F8F3E6;
+  border: 1px solid #E9DDBB;
+  color: #735D2B;
+}
+
+.notice.teal {
+  background: #EAF5F5;
+  border-color: #C7E5E6;
+  color: #23666C;
+}
+
+.notice.success {
+  background: #EAF6F0;
+  border-color: #C6E7D5;
+  color: #236B51;
+}
+
+.progress-track {
+  height: 5px;
+  background: #E2E9EC;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  transition: width .2s;
+}
+
+.progress-text {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 7px;
+}
+
+.hidden { display: none !important; }
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.result-box {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.result-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+.result-value {
+  font: 500 19px "IBM Plex Mono", monospace;
+}
+
+.result-unit {
+  color: var(--text-muted);
+  font: 10px "DM Sans", sans-serif;
+}
+
+.log {
+  background: #172B3A;
+  color: #D5E4E9;
+  padding: 14px;
+  border-radius: 8px;
+  height: 145px;
+  overflow: auto;
+  font: 10px/1.8 "IBM Plex Mono", monospace;
+}
+
+.log-line { overflow-wrap: anywhere; }
+.log-time { color: #86B9BE; }
+.log-ok { color: #92D8B7; }
+.log-warn { color: #E8C875; }
+.log-error { color: #F19AA3; }
+
+.footer {
+  padding-top: 27px;
+  text-align: center;
+  color: #84949D;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+@media (max-width: 1100px) {
+  .app { grid-template-columns: 190px minmax(0,1fr); }
+  .content { padding: 24px 22px 40px; }
+  .topbar { padding: 0 22px; }
+  .metrics { grid-template-columns: repeat(2,1fr); }
+  .layout { grid-template-columns: minmax(0,1fr); }
+}
+
+@media (max-width: 650px) {
+  .app { display: block; }
+  .sidebar {
+    position: relative;
+    height: auto;
+    min-height: 0;
+    padding: 14px;
+  }
+  .brand { padding: 0 5px 12px; border: 0; }
+  .nav-label, .sidebar-bottom { display: none; }
+  .sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+    margin-top: 12px;
+  }
+  .nav-item {
+    width: auto;
+    flex-shrink: 0;
+    padding: 9px 10px;
+    margin: 0;
+  }
+  .nav-item.active { box-shadow: inset 0 -3px #39B5BD; }
+  .nav-item span:last-child { font-size: 11px; }
+  .topbar { height: 52px; padding: 0 15px; }
+  .content { padding: 22px 14px 35px; }
+  .page-heading { flex-direction: column; }
+  .heading-actions { width: 100%; }
+  .heading-actions .btn { flex: 1; }
+  .metrics { gap: 9px; }
+  .metric { padding: 14px; }
+  .metric-value { font-size: 21px; }
+  .panel-body { padding: 15px; }
+  .panel-header { padding: 14px 15px; }
+  .two-col { grid-template-columns: 1fr; }
+  .chart-wrap { height: 185px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">∿</div>
+      <div>
+        <div class="brand-name">WaveLab</div>
+        <div class="brand-sub">Audio Research Tools</div>
+      </div>
+    </div>
+
+    <div class="nav-label">Workspace</div>
+    <nav>
+      <button class="nav-item active" data-section="workspace">
+        <span class="nav-icon">▦</span><span>Overview</span>
+      </button>
+      <button class="nav-item" data-section="watermark">
+        <span class="nav-icon">⌁</span><span>Watermarking</span>
+      </button>
+      <button class="nav-item" data-section="attacks">
+        <span class="nav-icon">⌇</span><span>Attack Testing</span>
+      </button>
+      <button class="nav-item" data-section="analysis">
+        <span class="nav-icon">◫</span><span>Signal Analysis</span>
+      </button>
+      <button class="nav-item" data-section="results">
+        <span class="nav-icon">▤</span><span>Results & Logs</span>
+      </button>
+    </nav>
+
+    <div class="nav-label">Information</div>
+    <button class="nav-item" id="aboutBtn">
+      <span class="nav-icon">ⓘ</span><span>About the Lab</span>
+    </button>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-status"><span class="status-dot"></span>Processing engine ready</div>
+      <div style="font-size:10px;color:#91A8B5;margin-top:8px;">LOCAL AUDIO PROCESSING</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">Research tools / <strong>Audio Watermarking</strong></div>
+      <div class="top-right">
+        <span class="tag">DSP Laboratory</span>
+        <div class="avatar">WL</div>
+      </div>
+    </header>
+
+    <div class="content" id="workspace">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">Digital signal processing · Experiment 01</div>
+          <h1>Audio Watermarking Lab</h1>
+          <p class="heading-description">
+            Embed a digital signature into audio, challenge it with common signal-processing attacks,
+            and evaluate how reliably the watermark survives.
+          </p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn" id="resetBtn">Reset experiment</button>
+          <button class="btn btn-primary" id="demoBtn">Load demo audio ↗</button>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Watermark BER</div>
+          <div class="metric-value" id="metricBer">—</div>
+          <div class="metric-foot">Bit error rate after extraction</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Audio SNR</div>
+          <div class="metric-value" id="metricSnr">—</div>
+          <div class="metric-foot">Signal-to-noise ratio</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Audio PSNR</div>
+          <div class="metric-value" id="metricPsnr">—</div>
+          <div class="metric-foot">Peak signal-to-noise ratio</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Watermark size</div>
+          <div class="metric-value" id="metricBits">—</div>
+          <div class="metric-foot">Payload bits embedded</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="column">
+          <section class="panel" id="watermark">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title"><span class="step-number">01</span>Audio source</h2>
+                <div class="panel-subtitle">Choose an audio file to start the experiment</div>
+              </div>
+              <span class="tag">Input</span>
+            </div>
+            <div class="panel-body">
+              <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">⇧</div>
+                <div class="upload-title">Drop your audio file here</div>
+                <div class="upload-description">or choose a file from your device<br>WAV, MP3 and M4A supported by your browser</div>
+                <div style="margin-top:14px">
+                  <button class="btn btn-primary" id="chooseFileBtn">Browse files</button>
+                </div>
+                <div class="upload-filename" id="fileName">No audio loaded</div>
+                <input class="file-input" type="file" id="audioFile" accept="audio/*">
+              </div>
+
+              <div style="margin-top:20px">
+                <div class="section-label">Input signal</div>
+                <canvas class="signal-canvas" id="inputWave"></canvas>
+                <div class="chart-caption">
+                  <span id="audioInfo">Awaiting audio source</span>
+                  <span id="durationInfo">Duration: —</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title"><span class="step-number">02</span>Watermark configuration</h2>
+                <div class="panel-subtitle">Define the signature and embedding strength</div>
+              </div>
+              <span class="tag">Encode</span>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <label class="field-label" for="watermarkText">Watermark message</label>
+                <input type="text" id="watermarkText" value="WAVELAB-2026" maxlength="64" placeholder="Enter a short watermark">
+                <div class="field-help">The message is converted to bits before embedding. Shorter messages are easier to recover.</div>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="strength">
+                  <span>Embedding strength</span>
+                  <span class="field-value" id="strengthValue">0.080</span>
+                </label>
+                <input type="range" id="strength" min="0.005" max="0.12" step="0.005" value="0.08">
+                <div class="field-help">Higher strength can improve recovery but may increase audible distortion.</div>
+              </div>
+
+              <div class="two-col">
+                <div class="field">
+                  <label class="field-label" for="fftSize">FFT frame size</label>
+                  <select id="fftSize">
+                    <option value="512">512 samples</option>
+                    <option value="1024" selected>1024 samples</option>
+                    <option value="2048">2048 samples</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="repeatBits">Bit repetition</label>
+                  <select id="repeatBits">
+                    <option value="1">1× — compact</option>
+                    <option value="3" selected>3× — balanced</option>
+                    <option value="5">5× — robust</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="notice teal">
+                <strong>Method:</strong> FFT magnitude quantization. The algorithm modifies selected spectral magnitudes
+                and uses a synchronized key pattern for extraction. This is an educational prototype, not a cryptographic
+                or production-grade watermarking system.
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-primary" id="embedBtn" disabled>Embed watermark</button>
+                <button class="btn" id="extractBtn" disabled>Extract watermark</button>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+              <div class="progress-text" id="progressText">Load an audio file or demo to begin.</div>
+            </div>
+          </section>
+
+          <section class="panel" id="attacks">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title"><span class="step-number">03</span>Attack simulation</h2>
+                <div class="panel-subtitle">Test the watermark against common transformations</div>
+              </div>
+              <span class="tag">Robustness</span>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <label class="field-label" for="attackType">Attack type</label>
+                <select id="attackType">
+                  <option value="none">No attack — baseline</option>
+                  <option value="noise">Additive white Gaussian noise</option>
+                  <option value="lowpass">Low-pass filtering</option>
+                  <option value="resample">Resampling / sample-rate change</option>
+                </select>
+              </div>
+
+              <div class="field" id="noiseField">
+                <label class="field-label" for="noiseLevel">
+                  <span>Noise level</span><span class="field-value" id="noiseValue">20 dB SNR</span>
+                </label>
+                <input type="range" id="noiseLevel" min="0" max="40" step="1" value="20">
+              </div>
+
+              <div class="field hidden" id="cutoffField">
+                <label class="field-label" for="cutoff">
+                  <span>Low-pass cutoff</span><span class="field-value" id="cutoffValue">4000 Hz</span>
+                </label>
+                <input type="range" id="cutoff" min="500" max="10000" step="250" value="4000">
+              </div>
+
+              <div class="field hidden" id="resampleField">
+                <label class="field-label" for="resampleRate">Target sample rate</label>
+                <select id="resampleRate">
+                  <option value="0.5">Half-rate (0.5×)</option>
+                  <option value="0.75">Reduced rate (0.75×)</option>
+                  <option value="1.25">Increased rate (1.25×)</option>
+                </select>
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-primary" id="applyAttackBtn" disabled>Apply attack</button>
+                <button class="btn" id="restoreBtn" disabled>Restore embedded audio</button>
+              </div>
+              <div class="field-help">Attack simulations operate on the embedded signal. Resampling changes the number of samples and can affect watermark synchronization.</div>
+            </div>
+          </section>
+
+          <section class="panel" id="results">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title"><span class="step-number">04</span>Extracted payload</h2>
+                <div class="panel-subtitle">Compare the recovered signature with the original</div>
+              </div>
+              <span class="tag">Decode</span>
+            </div>
+            <div class="panel-body">
+              <div class="results-grid">
+                <div class="result-box">
+                  <div class="result-label">Original message</div>
+                  <div class="result-value" style="font-size:13px;overflow-wrap:anywhere" id="originalMessage">—</div>
+                </div>
+                <div class="result-box">
+                  <div class="result-label">Recovered message</div>
+                  <div class="result-value" style="font-size:13px;overflow-wrap:anywhere" id="recoveredMessage">—</div>
+                </div>
+                <div class="result-box">
+                  <div class="result-label">Bit errors</div>
+                  <div class="result-value" id="bitErrors">—</div>
+                </div>
+                <div class="result-box">
+                  <div class="result-label">Recovery status</div>
+                  <div class="result-value" style="font:700 13px 'DM Sans',sans-serif" id="recoveryStatus">Not tested</div>
+                </div>
+              </div>
+              <div style="margin-top:16px">
+                <div class="section-label">Extracted audio waveform</div>
+                <canvas class="signal-canvas" id="outputWave"></canvas>
+              </div>
+              
+              <div class="action-row">
+                  <button class="btn" id="playOriginalBtn" disabled>▶ Play original</button>
+                  <button class="btn" id="pauseOriginalBtn" disabled>⏸ Pause original</button>
+                  <button class="btn" id="playOutputBtn" disabled>▶ Play processed</button>
+                  <button class="btn" id="pauseOutputBtn" disabled>⏸ Pause processed</button>
+                  <button class="btn btn-gold" id="downloadBtn" disabled>↓ Download WAV</button>
+              </div>
+
+            </div>
+          </section>
+        </div>
+
+        <div class="column">
+          <section class="panel" id="analysis">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Signal overview</h2>
+                <div class="panel-subtitle">Time-domain comparison</div>
+              </div>
+              <span class="tag">Waveform</span>
+            </div>
+            <div class="panel-body">
+              <div class="chart-legend" style="margin-bottom:12px">
+                <span><i class="legend-dot" style="background:#087F8C"></i>Original</span>
+                <span><i class="legend-dot" style="background:#D5A84C"></i>Processed</span>
+              </div>
+              <div class="chart-wrap"><canvas id="waveChart"></canvas></div>
+              <div class="chart-caption">
+                <span>Amplitude</span><span>Time (relative samples)</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Frequency spectrum</h2>
+                <div class="panel-subtitle">Magnitude distribution across frequencies</div>
+              </div>
+              <span class="tag">FFT</span>
+            </div>
+            <div class="panel-body">
+              <div class="chart-legend" style="margin-bottom:12px">
+                <span><i class="legend-dot" style="background:#087F8C"></i>Original</span>
+                <span><i class="legend-dot" style="background:#D5A84C"></i>Processed</span>
+              </div>
+              <div class="chart-wrap"><canvas id="spectrumChart"></canvas></div>
+              <div class="chart-caption">
+                <span>Magnitude (normalized)</span><span>Frequency (Hz)</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Robustness analysis</h2>
+                <div class="panel-subtitle">Bit error rate under each test condition</div>
+              </div>
+              <span class="tag">BER</span>
+            </div>
+            <div class="panel-body">
+              <div class="chart-wrap short"><canvas id="berChart"></canvas></div>
+              <div class="chart-caption">
+                <span>Lower BER indicates better recovery</span><span>0–100%</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Experiment log</h2>
+                <div class="panel-subtitle">Activity and processing events</div>
+              </div>
+              <button class="btn" id="clearLogBtn" style="padding:6px 9px">Clear</button>
+            </div>
+            <div class="panel-body">
+              <div class="log" id="log"></div>
+            </div>
+          </section>
+
+          <div class="notice">
+            <strong>Interpretation note</strong><br>
+            BER measures recovered payload bit errors. SNR and PSNR measure audio-signal differences, not watermark
+            security. Results depend on audio content, payload length, embedding strength, and attack parameters.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        WAVELAB · AUDIO SIGNAL PROCESSING WORKSPACE<br>
+        Educational DSP prototype · Processing runs locally in your browser
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+/* -------------------------------------------------------
+   State
+------------------------------------------------------- */
+
+const state = {
+  audioContext: null,
+  sourceBuffer: null,
+  original: null,
+  embedded: null,
+  processed: null,
+  sampleRate: 44100,
+  processedSampleRate: 44100,
+  fileName: "",
+  messageBits: [],
+  lastRecoveredBits: [],
+  history: [],
+  charts: {},
+  originalBlobUrl: null,
+  busy: false,
+  players: {
+  original: {
+    source: null,
+    buffer: null,
+    samples: null,
+    offset: 0,
+    startedAt: 0
+  },
+  processed: {
+    source: null,
+    buffer: null,
+    samples: null,
+    offset: 0,
+    startedAt: 0
+  }
+},
+};
+
+const $ = id => document.getElementById(id);
+
+function getAudioContext() {
+  if (!state.audioContext) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) throw new Error("Web Audio API is not supported in this browser.");
+    state.audioContext = new AudioCtx();
+  }
+  return state.audioContext;
+}
+
+function log(message, type = "info") {
+  const host = $("log");
+  const line = document.createElement("div");
+  line.className = "log-line";
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+
+  const timeSpan = document.createElement("span");
+  timeSpan.className = "log-time";
+  timeSpan.textContent = "[" + time + "] ";
+
+  const messageSpan = document.createElement("span");
+  messageSpan.className =
+    type === "ok" ? "log-ok" :
+    type === "warn" ? "log-warn" :
+    type === "error" ? "log-error" : "";
+  messageSpan.textContent = message;
+
+  line.append(timeSpan, messageSpan);
+  host.appendChild(line);
+  host.scrollTop = host.scrollHeight;
+}
+
+function setProgress(percent, text) {
+  $("progressFill").style.width = Math.max(0, Math.min(100, percent)) + "%";
+  $("progressText").textContent = text;
+}
+
+function setBusy(busy) {
+  state.busy = busy;
+  [
+    "embedBtn", "extractBtn", "applyAttackBtn", "restoreBtn",
+    "resetBtn", "demoBtn", "chooseFileBtn"
+  ].forEach(id => $(id).disabled = busy);
+
+  updateButtons();
+}
+
+function updateButtons() {
+  $("embedBtn").disabled = state.busy || !state.original;
+  $("extractBtn").disabled = state.busy || !state.embedded;
+  $("applyAttackBtn").disabled = state.busy || !state.embedded;
+  $("restoreBtn").disabled = state.busy || !state.embedded;
+  $("playOriginalBtn").disabled = !state.original;
+  $("playOutputBtn").disabled = !state.processed;
+  $("downloadBtn").disabled = !state.processed;
+  updatePlaybackButtons();
+}
+
+/* -------------------------------------------------------
+   Audio file loading and playback
+------------------------------------------------------- */
+
+function stopPlayer(kind, resetPosition = true) {
+  const player = state.players[kind];
+  if (!player) return;
+
+  if (player.source) {
+    const source = player.source;
+    player.source = null;
+    source.onended = null;
+    try { source.stop(); } catch (_) { /* Source may already have stopped. */ }
+  }
+
+  if (resetPosition) player.offset = 0;
+  if (resetPosition) {
+    player.buffer = null;
+    player.samples = null;
+  }
+}
+
+function stopAllPlayers() {
+  stopPlayer("original");
+  stopPlayer("processed");
+  updatePlaybackButtons();
+}
+
+function updatePlaybackButtons() {
+  $("pauseOriginalBtn").disabled = !state.players.original.source;
+  $("pauseOutputBtn").disabled = !state.players.processed.source;
+}
+
+async function decodeAudioFile(file) {
+  if (!file) return;
+  stopAllPlayers();
+
+  try {
+    setBusy(true);
+    setProgress(10, "Reading audio file...");
+    log("Loading audio file: " + file.name);
+
+    const ctx = getAudioContext();
+    const bytes = await file.arrayBuffer();
+    const decoded = await ctx.decodeAudioData(bytes.slice(0));
+
+    const channel = decoded.getChannelData(0);
+    state.original = new Float32Array(channel);
+    state.sourceBuffer = decoded;
+    state.sampleRate = decoded.sampleRate;
+    state.processedSampleRate = decoded.sampleRate;
+    state.fileName = file.name;
+    state.embedded = null;
+    state.processed = null;
+    state.messageBits = [];
+    state.lastRecoveredBits = [];
+    state.history = [];
+
+    $("fileName").textContent = file.name;
+    $("audioInfo").textContent =
+      decoded.sampleRate.toLocaleString() + " Hz · " +
+      decoded.numberOfChannels + " channel(s)";
+    $("durationInfo").textContent =
+      "Duration: " + decoded.duration.toFixed(2) + " s";
+
+    clearResults();
+    drawWaveCanvas($("inputWave"), state.original);
+    drawWaveCanvas($("outputWave"), null);
+    refreshCharts();
+    resetBerChart();
+    updateButtons();
+    setProgress(100, "Audio loaded successfully.");
+
+    log(
+      "Decoded " + state.original.length.toLocaleString() +
+      " samples at " + state.sampleRate + " Hz.",
+      "ok"
+    );
+  } catch (err) {
+    log("Could not decode audio: " + err.message, "error");
+    setProgress(0, "Audio could not be decoded. Try a WAV file.");
+    alert("Unable to decode this audio file. Try a WAV file or a different browser.");
+  } finally {
+    setBusy(false);
+  }
+}
+
+
+function playSamples(samples, sampleRate, kind) {
+  if (!samples || !samples.length) return;
+
+  try {
+    const ctx = getAudioContext();
+    const player = state.players[kind];
+
+    // Keep the comparison clear: do not play original and processed audio over each other.
+    stopPlayer(kind === "original" ? "processed" : "original");
+    if (ctx.state === "suspended") ctx.resume();
+
+    // Create a new buffer if the audio has changed
+    if (player.samples !== samples || !player.buffer) {
+      if (player.source) {
+        player.source.onended = null;
+        player.source.stop();
+      }
+
+      player.samples = samples;
+      player.buffer = ctx.createBuffer(1, samples.length, sampleRate);
+      player.buffer.copyToChannel(Float32Array.from(samples), 0);
+      player.offset = 0;
+      player.source = null;
+    }
+
+    // Do not start a second copy while this one is playing
+    if (player.source) return;
+
+    if (player.offset >= player.buffer.duration) {
+      player.offset = 0;
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = player.buffer;
+    source.connect(ctx.destination);
+
+    player.source = source;
+    player.startedAt = ctx.currentTime;
+
+    source.onended = () => {
+      if (player.source !== source) return;
+      player.source = null;
+      player.offset = 0;
+      updatePlaybackButtons();
+    };
+
+    source.start(0, player.offset);
+    updatePlaybackButtons();
+
+  } catch (err) {
+    log("Playback error: " + err.message, "error");
+  }
+}
+
+function pauseSamples(kind) {
+  const player = state.players[kind];
+
+  if (!player || !player.source) return;
+
+  player.offset += state.audioContext.currentTime - player.startedAt;
+
+  const source = player.source;
+  player.source = null;
+  source.onended = null;
+  source.stop();
+  updatePlaybackButtons();
+}
+
+/* -------------------------------------------------------
+   Demo audio: synthetic multitone signal with an envelope
+------------------------------------------------------- */
+
+function makeDemoAudio() {
+  stopAllPlayers();
+  const sampleRate = 44100;
+  const duration = 8;
+  const length = sampleRate * duration;
+  const samples = new Float32Array(length);
+
+  for (let i = 0; i < length; i++) {
+    const t = i / sampleRate;
+
+    const envelope =
+      0.45 +
+      0.25 * Math.sin(2 * Math.PI * 0.22 * t) ** 2;
+
+    const tone =
+      0.48 * Math.sin(2 * Math.PI * 220 * t) +
+      0.24 * Math.sin(2 * Math.PI * 440 * t) +
+      0.15 * Math.sin(2 * Math.PI * 660 * t) +
+      0.08 * Math.sin(2 * Math.PI * 1100 * t);
+
+   const transient =
+  0.12 * Math.sin(2 * Math.PI * 1600 * t) *
+  Math.exp(-Math.pow((t % 0.75) - 0.08, 2) / 0.001);
+
+    samples[i] = (tone + transient) * envelope;
+  }
+
+  state.original = samples;
+  state.sampleRate = sampleRate;
+  state.processedSampleRate = sampleRate;
+  state.fileName = "wavelab-demo.wav";
+  state.sourceBuffer = null;
+  state.embedded = null;
+  state.processed = null;
+  state.processedSampleRate = state.sampleRate;
+  state.messageBits = [];
+  state.lastRecoveredBits = [];
+  state.history = [];
+
+  $("fileName").textContent = "wavelab-demo.wav · generated test signal";
+  $("audioInfo").textContent = "44,100 Hz · mono demo signal";
+  $("durationInfo").textContent = "Duration: 8.00 s";
+
+  clearResults();
+  drawWaveCanvas($("inputWave"), state.original);
+  drawWaveCanvas($("outputWave"), null);
+  refreshCharts();
+  resetBerChart();
+  updateButtons();
+
+  setProgress(100, "Demo signal loaded.");
+  log("Generated synthetic multitone demo signal.", "ok");
+}
+
+/* -------------------------------------------------------
+   Bit conversion
+------------------------------------------------------- */
+
+function textToBits(text) {
+  const bytes = new TextEncoder().encode(text);
+  const bits = [];
+
+  for (const byte of bytes) {
+    for (let bit = 7; bit >= 0; bit--) {
+      bits.push((byte >> bit) & 1);
+    }
+  }
+
+  return bits;
+}
+
+function bitsToText(bits) {
+  const bytes = [];
+
+  for (let i = 0; i + 7 < bits.length; i += 8) {
+    let byte = 0;
+    for (let j = 0; j < 8; j++) {
+      byte = (byte << 1) | (bits[i + j] & 1);
+    }
+    bytes.push(byte);
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(bytes))
+      .replace(/\u0000+$/g, "");
+  } catch {
+    return "";
+  }
+}
+
+function expandBits(bits, repetitions) {
+  const result = [];
+  for (const bit of bits) {
+    for (let r = 0; r < repetitions; r++) result.push(bit);
+  }
+  return result;
+}
+
+function majorityDecode(bits, repetitions) {
+  const decoded = [];
+
+  for (let i = 0; i < bits.length; i += repetitions) {
+    const group = bits.slice(i, i + repetitions);
+    const ones = group.reduce((sum, bit) => sum + bit, 0);
+    decoded.push(ones > group.length / 2 ? 1 : 0);
+  }
+
+  return decoded;
+}
+
+/* -------------------------------------------------------
+   DSP utilities
+------------------------------------------------------- */
+
+function nextPowerOfTwo(n) {
+  let p = 1;
+  while (p < n) p *= 2;
+  return p;
+}
+
+function fft(realInput) {
+  const n = nextPowerOfTwo(realInput.length);
+  const re = new Float64Array(n);
+  const im = new Float64Array(n);
+
+  for (let i = 0; i < realInput.length; i++) re[i] = realInput[i];
+
+  let j = 0;
+  for (let i = 1; i < n; i++) {
+    let bit = n >> 1;
+    while (j & bit) {
+      j ^= bit;
+      bit >>= 1;
+    }
+    j ^= bit;
+
+    if (i < j) {
+      [re[i], re[j]] = [re[j], re[i]];
+      [im[i], im[j]] = [im[j], im[i]];
+    }
+  }
+
+  for (let len = 2; len <= n; len <<= 1) {
+    const angle = -2 * Math.PI / len;
+    const wlenRe = Math.cos(angle);
+    const wlenIm = Math.sin(angle);
+
+    for (let i = 0; i < n; i += len) {
+      let wRe = 1;
+      let wIm = 0;
+      const half = len >> 1;
+
+      for (let k = 0; k < half; k++) {
+        const uRe = re[i + k];
+        const uIm = im[i + k];
+        const vRe = re[i + k + half] * wRe - im[i + k + half] * wIm;
+        const vIm = re[i + k + half] * wIm + im[i + k + half] * wRe;
+
+        re[i + k] = uRe + vRe;
+        im[i + k] = uIm + vIm;
+        re[i + k + half] = uRe - vRe;
+        im[i + k + half] = uIm - vIm;
+
+        const nextWRe = wRe * wlenRe - wIm * wlenIm;
+        wIm = wRe * wlenIm + wIm * wlenRe;
+        wRe = nextWRe;
+      }
+    }
+  }
+
+  return { re, im };
+}
+
+function ifft(reInput, imInput) {
+  const re = Float64Array.from(reInput);
+  const im = Float64Array.from(imInput);
+
+  for (let i = 0; i < im.length; i++) im[i] = -im[i];
+
+  const transformed = fftComplex(re, im);
+
+  for (let i = 0; i < transformed.re.length; i++) {
+    transformed.re[i] /= transformed.re.length;
+    transformed.im[i] = -transformed.im[i] / transformed.re.length;
+  }
+
+  return transformed.re;
+}
+
+function fftComplex(realInput, imagInput) {
+  const n = realInput.length;
+  const re = Float64Array.from(realInput);
+  const im = Float64Array.from(imagInput);
+
+  let j = 0;
+  for (let i = 1; i < n; i++) {
+    let bit = n >> 1;
+    while (j & bit) {
+      j ^= bit;
+      bit >>= 1;
+    }
+    j ^= bit;
+
+    if (i < j) {
+      [re[i], re[j]] = [re[j], re[i]];
+      [im[i], im[j]] = [im[j], im[i]];
+    }
+  }
+
+  for (let len = 2; len <= n; len <<= 1) {
+    const angle = -2 * Math.PI / len;
+    const wlenRe = Math.cos(angle);
+    const wlenIm = Math.sin(angle);
+
+    for (let i = 0; i < n; i += len) {
+      let wRe = 1;
+      let wIm = 0;
+      const half = len >> 1;
+
+      for (let k = 0; k < half; k++) {
+        const uRe = re[i + k];
+        const uIm = im[i + k];
+        const vRe = re[i + k + half] * wRe - im[i + k + half] * wIm;
+        const vIm = re[i + k + half] * wIm + im[i + k + half] * wRe;
+
+        re[i + k] = uRe + vRe;
+        im[i + k] = uIm + vIm;
+        re[i + k + half] = uRe - vRe;
+        im[i + k + half] = uIm - vIm;
+
+        const nr = wRe * wlenRe - wIm * wlenIm;
+        wIm = wRe * wlenIm + wIm * wlenRe;
+        wRe = nr;
+      }
+    }
+  }
+
+  return { re, im };
+}
+
+function hammingWindow(n) {
+  const window = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    window[i] = n <= 1 ? 1 : 0.54 - 0.46 * Math.cos(2 * Math.PI * i / (n - 1));
+  }
+  return window;
+}
+
+function normalizeAudio(samples) {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    peak = Math.max(peak, Math.abs(samples[i]));
+  }
+  if (!peak) return Float32Array.from(samples);
+
+  const output = new Float32Array(samples.length);
+  for (let i = 0; i < samples.length; i++) output[i] = samples[i] / peak * 0.95;
+  return output;
+}
+
+/* -------------------------------------------------------
+   FFT-frame watermark embedding
+   Quantization index modulation of selected magnitudes.
+------------------------------------------------------- */
+
+function embedWatermark(samples, bits, strength, frameSize, repetitions) {
+  const repeated = expandBits(bits, repetitions);
+  const hop = frameSize;
+  const frameCount = Math.floor(samples.length / hop);
+
+  if (frameCount < repeated.length) {
+    throw new Error(
+      "Payload is too long. Use a shorter message, lower repetition, " +
+      "or longer audio."
+    );
+  }
+
+  const output = Float32Array.from(samples);
+  const positions = [];
+
+  // Restrict watermark frequencies to 500–3000 Hz.
+  const minBin = Math.max(2, Math.ceil(500 * frameSize / state.sampleRate));
+  const maxBin = Math.min(
+    Math.floor(frameSize / 2) - 1,
+    Math.floor(3000 * frameSize / state.sampleRate)
+  );
+
+  const usableBins = maxBin - minBin + 1;
+
+  if (usableBins < 4) {
+    throw new Error("Selected FFT size is too small for the watermark band.");
+  }
+
+  for (let k = 0; k < repeated.length; k++) {
+    const frameIndex = Math.floor(k * frameCount / repeated.length);
+    const start = frameIndex * hop;
+
+    const frame = new Float64Array(frameSize);
+    let power = 0;
+
+    for (let i = 0; i < frameSize; i++) {
+      frame[i] = samples[start + i] || 0;
+      power += frame[i] * frame[i];
+    }
+
+    const frameRms = Math.sqrt(power / frameSize);
+    const spectrum = fft(frame);
+
+    const bin = minBin + ((k * 37 + 11) % usableBins);
+    const mirrorBin = frameSize - bin;
+
+    const real = spectrum.re[bin];
+    const imag = spectrum.im[bin];
+
+    const mag = Math.hypot(real, imag);
+    const phase = Math.atan2(imag, real);
+
+    // Adaptive quantization step.
+    const q = Math.max(
+      1e-7,
+      strength * Math.max(mag, frameRms * frameSize * 0.25)
+    );
+
+    let index = Math.round(mag / q);
+
+    // Force the quantization index to represent the required bit.
+    if ((index & 1) !== repeated[k]) {
+      const lower = Math.max(0, index - 1);
+      const upper = index + 1;
+
+      const lowerDistance = Math.abs(mag - lower * q);
+      const upperDistance = Math.abs(mag - upper * q);
+
+      index = lowerDistance <= upperDistance ? lower : upper;
+    }
+
+    const newMag = index * q;
+
+    // Preserve the original phase.
+    const newReal = newMag * Math.cos(phase);
+    const newImag = newMag * Math.sin(phase);
+
+    // Modify the positive-frequency component.
+    spectrum.re[bin] = newReal;
+    spectrum.im[bin] = newImag;
+
+    // Modify its conjugate to maintain a real-valued signal.
+    spectrum.re[mirrorBin] = newReal;
+    spectrum.im[mirrorBin] = -newImag;
+
+    const reconstructed = ifft(spectrum.re, spectrum.im);
+
+    for (let i = 0; i < frameSize; i++) {
+      output[start + i] += reconstructed[i] - frame[i];
+    }
+
+    positions.push({
+      frameIndex,
+      bin,
+      q
+    });
+  }
+
+  return {
+    samples: output,
+    positions,
+    repeatedBits: repeated
+  };
+}
+function extractWatermark(
+  samples,
+  bitCount,
+  frameSize,
+  repetitions,
+  positions
+) {
+  if (!positions || positions.length === 0) {
+    throw new Error("Embed a watermark before attempting extraction.");
+  }
+
+  const extractedRepeated = [];
+
+  for (let k = 0; k < positions.length; k++) {
+    const { frameIndex, bin, q } = positions[k];
+    const start = frameIndex * frameSize;
+
+    if (start + frameSize > samples.length) {
+      throw new Error("Audio is too short for the selected watermark frame.");
+    }
+
+    // Use exactly the same rectangular-window processing as embedding.
+    const frame = new Float64Array(frameSize);
+
+    for (let i = 0; i < frameSize; i++) {
+      frame[i] = samples[start + i];
+    }
+
+    const spectrum = fft(frame);
+
+    const mag = Math.hypot(
+      spectrum.re[bin],
+      spectrum.im[bin]
+    );
+
+    const index = Math.round(mag / q);
+
+    extractedRepeated.push(index & 1);
+  }
+
+  const decoded = majorityDecode(extractedRepeated, repetitions);
+
+  return decoded.slice(0, bitCount);
+}
+
+/* -------------------------------------------------------
+   Attack simulations
+------------------------------------------------------- */
+
+function seededRandomGenerator(seed) {
+  let value = seed >>> 0;
+  return function () {
+    value = (1664525 * value + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
+function gaussianRandom(random) {
+  const u = Math.max(1e-12, random());
+  const v = Math.max(1e-12, random());
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function addNoise(samples, snrDb) {
+  let signalPower = 0;
+  for (const sample of samples) signalPower += sample * sample;
+  signalPower /= Math.max(1, samples.length);
+
+  const noisePower = signalPower / Math.pow(10, snrDb / 10);
+  const std = Math.sqrt(noisePower);
+  const random = seededRandomGenerator(20261024);
+
+  const output = new Float32Array(samples.length);
+  for (let i = 0; i < samples.length; i++) {
+    output[i] = samples[i] + gaussianRandom(random) * std;
+  }
+  return output;
+}
+
+function lowPassFilter(samples, sampleRate, cutoff) {
+  // A simple one-pole low-pass filter, implemented in both directions
+  // to reduce phase distortion.
+  const alpha = 1 - Math.exp(-2 * Math.PI * cutoff / sampleRate);
+
+  function filter(input) {
+    const output = new Float32Array(input.length);
+    let previous = 0;
+
+    for (let i = 0; i < input.length; i++) {
+      previous += alpha * (input[i] - previous);
+      output[i] = previous;
+    }
+    return output;
+  }
+
+  const forward = filter(samples);
+  const reversed = Float32Array.from(forward).reverse();
+  return Float32Array.from(filter(reversed).reverse());
+}
+
+function resampleAudio(samples, factor) {
+  const newLength = Math.max(1, Math.round(samples.length * factor));
+  const output = new Float32Array(newLength);
+
+  for (let i = 0; i < newLength; i++) {
+    const sourcePosition = i / factor;
+    const left = Math.floor(sourcePosition);
+    const right = Math.min(samples.length - 1, left + 1);
+    const fraction = sourcePosition - left;
+
+    output[i] =
+      (samples[left] || 0) * (1 - fraction) +
+      (samples[right] || 0) * fraction;
+  }
+
+  return output;
+}
+
+/* -------------------------------------------------------
+   Metrics
+------------------------------------------------------- */
+
+function calculateBer(originalBits, recoveredBits) {
+  if (!originalBits.length) return NaN;
+
+  let errors = 0;
+  for (let i = 0; i < originalBits.length; i++) {
+    if (originalBits[i] !== recoveredBits[i]) errors++;
+  }
+
+  return { errors, ber: errors / originalBits.length };
+}
+
+function calculateSignalMetrics(reference, test) {
+  const length = Math.min(reference.length, test.length);
+  if (!length) return { snr: NaN, psnr: NaN, mse: NaN };
+
+  let signalPower = 0;
+  let noisePower = 0;
+  let squaredError = 0;
+  let peak = 0;
+
+  for (let i = 0; i < length; i++) {
+    const a = reference[i];
+    const b = test[i];
+    const error = a - b;
+
+    signalPower += a * a;
+    noisePower += error * error;
+    squaredError += error * error;
+    peak = Math.max(peak, Math.abs(a));
+  }
+
+  signalPower /= length;
+  noisePower /= length;
+  const mse = squaredError / length;
+
+  const snr = noisePower === 0
+    ? Infinity
+    : 10 * Math.log10(signalPower / noisePower);
+
+  const psnr = mse === 0
+    ? Infinity
+    : 20 * Math.log10(Math.max(peak, 1e-12) / Math.sqrt(mse));
+
+  return { snr, psnr, mse };
+}
+
+function formatMetric(value, suffix = "") {
+  if (!Number.isFinite(value)) return value === Infinity ? "∞" : "—";
+  return value.toFixed(2) + suffix;
+}
+
+function updateMetricCards(ber, metrics, bitCount) {
+  $("metricBer").textContent = Number.isFinite(ber)
+    ? (ber * 100).toFixed(2) + "%"
+    : "—";
+  $("metricSnr").textContent = formatMetric(metrics.snr, " dB");
+  $("metricPsnr").textContent = formatMetric(metrics.psnr, " dB");
+  $("metricBits").textContent = bitCount ? bitCount : "—";
+}
+
+/* -------------------------------------------------------
+   Main actions
+------------------------------------------------------- */
+
+async function embedAction() {
+  if (!state.original || state.busy) return;
+  stopAllPlayers();
+
+  try {
+    setBusy(true);
+    setProgress(5, "Preparing watermark payload...");
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    const message = $("watermarkText").value.trim();
+    if (!message) throw new Error("Enter a watermark message first.");
+
+    const bits = textToBits(message);
+    const strength = Number($("strength").value);
+    const frameSize = Number($("fftSize").value);
+    const repetitions = Number($("repeatBits").value);
+
+    state.messageBits = bits;
+    $("originalMessage").textContent = message;
+    $("recoveredMessage").textContent = "Awaiting extraction";
+
+    setProgress(25, "Embedding bits in frequency-domain frames...");
+    log("Embedding " + bits.length + " payload bits.");
+
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    const result = embedWatermark(
+      state.original, bits, strength, frameSize, repetitions
+    );
+
+    state.embedded = result.samples;
+    state.processed = Float32Array.from(result.samples);
+    state.processedSampleRate = state.sampleRate;
+    state.positions = result.positions;
+    state.frameSize = frameSize;
+    state.repetitions = repetitions;
+    state.embeddingStrength = strength;
+
+    setProgress(75, "Calculating signal quality metrics...");
+    const metrics = calculateSignalMetrics(state.original, state.embedded);
+
+    drawWaveCanvas($("outputWave"), state.processed);
+    refreshCharts();
+
+    $("metricBits").textContent = bits.length;
+    $("metricSnr").textContent = formatMetric(metrics.snr, " dB");
+    $("metricPsnr").textContent = formatMetric(metrics.psnr, " dB");
+    $("metricBer").textContent = "—";
+
+    $("bitErrors").textContent = "—";
+    $("recoveryStatus").textContent = "Not tested";
+
+    state.history = [{
+      label: "Embedded",
+      ber: null
+    }];
+    updateBerChart();
+
+    setProgress(100, "Watermark embedded. Run extraction to evaluate recovery.");
+    log("Watermark embedded using FFT magnitude quantization.", "ok");
+    log("Embedding SNR: " + formatMetric(metrics.snr, " dB") + ".");
+    log("Embedding PSNR: " + formatMetric(metrics.psnr, " dB") + ".");
+
+    updateButtons();
+  } catch (err) {
+    setProgress(0, err.message);
+    log(err.message, "error");
+    alert(err.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+
+async function extractAction() {
+
+  // Check whether extraction can proceed
+  if (!state.processed) {
+    log("Extraction failed: No processed audio available.", "error");
+    setProgress(0, "Please embed the watermark first.");
+    return;
+  }
+
+  if (!state.messageBits || state.messageBits.length === 0) {
+    log("Extraction failed: No watermark bits found.", "error");
+    setProgress(0, "Please embed a watermark first.");
+    return;
+  }
+
+  if (state.busy) {
+    log("Extraction skipped: Another operation is running.", "warn");
+    return;
+  }
+
+  try {
+    setBusy(true);
+
+    setProgress(20, "Starting watermark extraction...");
+    log("Starting extraction...", "info");
+
+    const recovered = extractWatermark(
+      state.processed,
+      state.messageBits.length,
+      state.frameSize,
+      state.repetitions,
+      state.positions
+    );
+
+    log("Watermark bits extracted: " + recovered.length);
+
+    if (!recovered || recovered.length === 0) {
+      throw new Error("No watermark bits could be recovered.");
+    }
+
+    const result = calculateBer(
+      state.messageBits,
+      recovered
+    );
+
+    const recoveredMessage = bitsToText(recovered);
+
+    const metrics = calculateSignalMetrics(
+      state.original,
+      state.processed
+    );
+
+    // Update recovered message
+    $("recoveredMessage").textContent =
+      recoveredMessage || "(unreadable payload)";
+
+    // Update bit errors
+    $("bitErrors").textContent =
+      result.errors + " / " + state.messageBits.length;
+
+    // Update recovery status
+    $("recoveryStatus").textContent =
+      result.errors === 0 ? "Exact match" : "Partial recovery";
+
+    // Update BER and signal quality
+    $("metricBer").textContent =
+      (result.ber * 100).toFixed(2) + "%";
+
+    $("metricSnr").textContent =
+      formatMetric(metrics.snr, " dB");
+
+    $("metricPsnr").textContent =
+      formatMetric(metrics.psnr, " dB");
+
+    // Update BER chart history
+    const condition = currentCondition();
+
+    const existingIndex = state.history.findIndex(
+      item => item.label === condition
+    );
+
+    const item = {
+      label: condition,
+      ber: result.ber
+    };
+
+    if (existingIndex >= 0) {
+      state.history[existingIndex] = item;
+    } else {
+      state.history.push(item);
+    }
+
+    updateBerChart();
+
+    setProgress(100, "Extraction complete.");
+
+    log(
+      "Extraction complete: " +
+      result.errors + " bit errors, BER = " +
+      (result.ber * 100).toFixed(2) + "%",
+      result.errors === 0 ? "ok" : "warn"
+    );
+
+  } catch (err) {
+
+    setProgress(0, "Extraction failed: " + err.message);
+
+    log(
+      "Extraction error: " + err.message,
+      "error"
+    );
+
+    console.error("Watermark extraction error:", err);
+
+  } finally {
+    setBusy(false);
+  }
+}
+
+
+function currentCondition() {
+  const type = $("attackType").value;
+  if (type === "noise") return "AWGN";
+  if (type === "lowpass") return "Low-pass";
+  if (type === "resample") return "Resampling";
+  return "Baseline";
+}
+
+async function applyAttack() {
+  if (!state.embedded || state.busy) return;
+  stopAllPlayers();
+
+  try {
+    setBusy(true);
+    setProgress(15, "Applying selected signal transformation...");
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    const type = $("attackType").value;
+    let output;
+
+    if (type === "none") {
+      output = Float32Array.from(state.embedded);
+      state.processedSampleRate = state.sampleRate;
+      log("Restored baseline embedded signal.", "ok");
+    } else if (type === "noise") {
+      state.processedSampleRate = state.sampleRate;
+      const snr = Number($("noiseLevel").value);
+      output = addNoise(state.embedded, snr);
+      log("Applied additive white Gaussian noise at " + snr + " dB SNR.");
+    } else if (type === "lowpass") {
+      state.processedSampleRate = state.sampleRate;
+      const cutoff = Number($("cutoff").value);
+      output = lowPassFilter(state.embedded, state.sampleRate, cutoff);
+      log("Applied low-pass filter with cutoff " + cutoff + " Hz.");
+    } else if (type === "resample") {
+      const factor = Number($("resampleRate").value);
+      state.processedSampleRate = Math.max(1, Math.round(state.sampleRate * factor));
+      output = resampleAudio(state.embedded, factor);
+      log("Resampled audio using factor " + factor + "×.", "warn");
+      log("Note: simple resampling may shift the payload frame alignment.", "warn");
+    } else {
+      throw new Error("Unknown attack type.");
+    }
+
+    state.processed = output;
+    drawWaveCanvas($("outputWave"), state.processed);
+    refreshCharts();
+
+    if (output.length === state.original.length) {
+      const metrics = calculateSignalMetrics(state.original, output);
+      $("metricSnr").textContent = formatMetric(metrics.snr, " dB");
+      $("metricPsnr").textContent = formatMetric(metrics.psnr, " dB");
+    } else {
+      // Length-changing resampling needs time/rate alignment before sample-wise metrics are meaningful.
+      $("metricSnr").textContent = "N/A";
+      $("metricPsnr").textContent = "N/A";
+      log("SNR/PSNR are shown as N/A because resampling changed the sample count; align sample rates before comparing.", "warn");
+    }
+
+    setProgress(100, "Attack applied. Extract the watermark to measure robustness.");
+    log("Processed signal length: " + output.length.toLocaleString() + " samples.");
+    updateButtons();
+  } catch (err) {
+    setProgress(0, err.message);
+    log("Attack failed: " + err.message, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+function restoreEmbedded() {
+  if (!state.embedded) return;
+  stopAllPlayers();
+
+  state.processed = Float32Array.from(state.embedded);
+  state.processedSampleRate = state.sampleRate;
+  drawWaveCanvas($("outputWave"), state.processed);
+  refreshCharts();
+
+  $("recoveredMessage").textContent = "Awaiting extraction";
+  $("bitErrors").textContent = "—";
+  $("recoveryStatus").textContent = "Not tested";
+  $("metricBer").textContent = "—";
+
+  setProgress(100, "Restored the embedded signal. Extract to calculate BER.");
+  log("Restored embedded audio before attack.", "ok");
+  updateButtons();
+}
+
+/* -------------------------------------------------------
+   Waveform and chart rendering
+------------------------------------------------------- */
+
+function drawWaveCanvas(canvas, samples) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.max(300, rect.width);
+  const height = Math.max(100, rect.height);
+
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.strokeStyle = "#E1E9EC";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, height / 2);
+  ctx.lineTo(width, height / 2);
+  ctx.stroke();
+
+  if (!samples || !samples.length) {
+    ctx.fillStyle = "#84949D";
+    ctx.font = "12px DM Sans";
+    ctx.textAlign = "center";
+    ctx.fillText("No waveform to display", width / 2, height / 2 - 10);
+    return;
+  }
+
+  const step = Math.max(1, Math.floor(samples.length / width));
+  ctx.strokeStyle = "#087F8C";
+  ctx.lineWidth = 1.15;
+  ctx.beginPath();
+
+  for (let x = 0; x < width; x++) {
+    const index = x * step;
+    let min = 1;
+    let max = -1;
+
+    for (let j = index; j < Math.min(samples.length, index + step); j++) {
+      min = Math.min(min, samples[j]);
+      max = Math.max(max, samples[j]);
+    }
+
+    const y1 = (1 - max) * height / 2;
+    const y2 = (1 - min) * height / 2;
+    ctx.moveTo(x, y1);
+    ctx.lineTo(x, y2);
+  }
+
+  ctx.stroke();
+}
+
+function chartDefaults() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 250 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#172B3A",
+        titleFont: { family: "DM Sans" },
+        bodyFont: { family: "IBM Plex Mono" },
+        padding: 10,
+        cornerRadius: 6
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: "#EDF1F3" },
+        ticks: {
+          color: "#71838D",
+          maxTicksLimit: 7,
+          font: { family: "DM Sans", size: 10 }
+        },
+        border: { display: false }
+      },
+      y: {
+        grid: { color: "#EDF1F3" },
+        ticks: {
+          color: "#71838D",
+          maxTicksLimit: 5,
+          font: { family: "IBM Plex Mono", size: 9 }
+        },
+        border: { display: false }
+      }
+    }
+  };
+}
+
+function sampledPoints(samples, count = 500) {
+  if (!samples || !samples.length) return [];
+  const stride = Math.max(1, Math.floor(samples.length / count));
+  const points = [];
+
+  for (let i = 0; i < samples.length; i += stride) {
+    points.push({ x: i, y: samples[i] });
+  }
+  return points;
+}
+
+function spectrumPoints(samples, sampleRate, count = 300) {
+  if (!samples || samples.length < 16) return [];
+
+  const n = Math.min(4096, nextPowerOfTwo(Math.min(samples.length, 4096)));
+  const frame = new Float64Array(n);
+  for (let i = 0; i < n; i++) frame[i] = samples[i] || 0;
+
+  const result = fft(frame);
+  const half = Math.floor(n / 2);
+  let maxMag = 0;
+
+  for (let i = 0; i < half; i++) {
+    maxMag = Math.max(maxMag, Math.hypot(result.re[i], result.im[i]));
+  }
+
+  const points = [];
+  const stride = Math.max(1, Math.floor(half / count));
+
+  for (let i = 1; i < half; i += stride) {
+    points.push({
+      x: Math.round(i * sampleRate / n),
+      y: maxMag ? Math.hypot(result.re[i], result.im[i]) / maxMag : 0
+    });
+  }
+
+  return points;
+}
+
+function makeLineChart(canvasId, datasets, xTitle, yTitle) {
+  const ctx = $(canvasId).getContext("2d");
+
+  if (state.charts[canvasId]) state.charts[canvasId].destroy();
+
+  const options = chartDefaults();
+  options.scales.x.title = {
+    display: true,
+    text: xTitle,
+    color: "#71838D",
+    font: { family: "DM Sans", size: 10 }
+  };
+  options.scales.y.title = {
+    display: true,
+    text: yTitle,
+    color: "#71838D",
+    font: { family: "DM Sans", size: 10 }
+  };
+
+  state.charts[canvasId] = new Chart(ctx, {
+    type: "line",
+    data: { datasets },
+    options: {
+      ...options,
+      parsing: false,
+      elements: {
+        point: { radius: 0, hitRadius: 6 },
+        line: { borderWidth: 1.8, tension: 0 }
+      },
+      scales: {
+        ...options.scales,
+        x: { ...options.scales.x, type: "linear" }
+      }
+    }
+  });
+}
+
+function refreshCharts() {
+  const original = state.original;
+  const processed = state.processed || state.embedded;
+
+  makeLineChart("waveChart", [
+    {
+      label: "Original",
+      data: sampledPoints(original),
+      borderColor: "#087F8C",
+      backgroundColor: "rgba(8,127,140,.05)"
+    },
+    {
+      label: "Processed",
+      data: sampledPoints(processed),
+      borderColor: "#D5A84C",
+      backgroundColor: "rgba(213,168,76,.05)"
+    }
+  ], "Sample index", "Amplitude");
+
+  makeLineChart("spectrumChart", [
+    {
+      label: "Original",
+      data: spectrumPoints(original, state.sampleRate),
+      borderColor: "#087F8C"
+    },
+    {
+      label: "Processed",
+      data: spectrumPoints(processed, state.sampleRate),
+      borderColor: "#D5A84C"
+    }
+  ], "Frequency (Hz)", "Normalized magnitude");
+}
+
+
+function resetBerChart() {
+    state.history = [];
+    updateBerChart();
+}
+
+function updateBerChart() {
+    const canvas = $("berChart");
+
+    if (state.charts.berChart) {
+        state.charts.berChart.destroy();
+    }
+
+    const labels = state.history
+        .filter(item => item.ber !== null)
+        .map(item => item.label);
+
+    const data = state.history
+        .filter(item => item.ber !== null)
+        .map(item => item.ber * 100);
+
+    const options = chartDefaults();
+
+    options.scales.y.min = 0;
+    options.scales.y.max = 100;
+    options.scales.y.ticks.callback = value => value + "%";
+
+    state.charts.berChart = new Chart(
+        canvas.getContext("2d"),
+        {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "BER",
+                    data: data,
+                    backgroundColor: "#087F8C",
+                    hoverBackgroundColor: "#D5A84C",
+                    borderRadius: 4,
+                    maxBarThickness: 34
+                }]
+            },
+            options: {
+                ...options,
+                scales: {
+                    ...options.scales,
+                    x: {
+                        ...options.scales.x,
+                        type: "category"
+                    }
+                }
+            }
+        }
+    );
+}
+
+/* -------------------------------------------------------
+   WAV export
+------------------------------------------------------- */
+
+function encodeWav(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  function writeString(offset, text) {
+    for (let i = 0; i < text.length; i++) {
+      view.setUint8(offset + i, text.charCodeAt(i));
+    }
+  }
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, samples.length * 2, true);
+
+  for (let i = 0; i < samples.length; i++) {
+    const value = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(
+      44 + i * 2,
+      value < 0 ? value * 32768 : value * 32767,
+      true
+    );
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+function downloadProcessed() {
+  if (!state.processed) return;
+
+  const blob = encodeWav(state.processed, state.processedSampleRate || state.sampleRate);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "wavelab-processed.wav";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log("Downloaded processed audio as WAV.", "ok");
+}
+
+/* -------------------------------------------------------
+   Reset and UI updates
+------------------------------------------------------- */
+
+function clearResults() {
+  $("originalMessage").textContent = "—";
+  $("recoveredMessage").textContent = "—";
+  $("bitErrors").textContent = "—";
+  $("recoveryStatus").textContent = "Not tested";
+
+  $("metricBer").textContent = "—";
+  $("metricSnr").textContent = "—";
+  $("metricPsnr").textContent = "—";
+  $("metricBits").textContent = "—";
+}
+
+function resetExperiment() {
+  stopAllPlayers();
+  state.original = null;
+  state.embedded = null;
+  state.processed = null;
+  state.processedSampleRate = state.sampleRate;
+  state.messageBits = [];
+  state.lastRecoveredBits = [];
+  state.history = [];
+  state.positions = null;
+  state.sourceBuffer = null;
+
+  $("audioFile").value = "";
+  $("fileName").textContent = "No audio loaded";
+  $("audioInfo").textContent = "Awaiting audio source";
+  $("durationInfo").textContent = "Duration: —";
+
+  clearResults();
+  drawWaveCanvas($("inputWave"), null);
+  drawWaveCanvas($("outputWave"), null);
+  refreshCharts();
+  resetBerChart();
+  setProgress(0, "Load an audio file or demo to begin.");
+  updateButtons();
+
+  log("Experiment reset.");
+}
+
+function updateAttackFields() {
+  const type = $("attackType").value;
+
+  $("noiseField").classList.toggle("hidden", type !== "noise");
+  $("cutoffField").classList.toggle("hidden", type !== "lowpass");
+  $("resampleField").classList.toggle("hidden", type !== "resample");
+}
+
+function updateSliderLabels() {
+  $("strengthValue").textContent = Number($("strength").value).toFixed(3);
+  $("noiseValue").textContent = $("noiseLevel").value + " dB SNR";
+  $("cutoffValue").textContent = $("cutoff").value + " Hz";
+}
+
+/* -------------------------------------------------------
+   Navigation
+------------------------------------------------------- */
+
+document.querySelectorAll(".nav-item[data-section]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item[data-section]").forEach(item =>
+      item.classList.remove("active")
+    );
+
+    button.classList.add("active");
+
+    const section = button.dataset.section;
+    const target = section === "workspace"
+      ? $("workspace")
+      : $(section);
+
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+});
+
+$("aboutBtn").addEventListener("click", () => {
+  alert(
+    "WaveLab Audio Watermarking Lab\n\n" +
+    "An educational browser-based DSP prototype for embedding and extracting " +
+    "digital signatures in audio and studying the effects of signal-processing attacks.\n\n" +
+    "The demo uses FFT magnitude quantization. Results are intended for learning and " +
+    "should not be interpreted as a security certification."
+  );
+});
+
+/* -------------------------------------------------------
+   Event handlers
+------------------------------------------------------- */
+
+$("chooseFileBtn").addEventListener("click", () => $("audioFile").click());
+
+$("audioFile").addEventListener("change", event => {
+  const file = event.target.files && event.target.files[0];
+  if (file) decodeAudioFile(file);
+});
+
+const uploadArea = $("uploadArea");
+
+uploadArea.addEventListener("dragover", event => {
+  event.preventDefault();
+  uploadArea.classList.add("dragover");
+});
+
+uploadArea.addEventListener("dragleave", () => {
+  uploadArea.classList.remove("dragover");
+});
+
+uploadArea.addEventListener("drop", event => {
+  event.preventDefault();
+  uploadArea.classList.remove("dragover");
+
+  const file = event.dataTransfer.files && event.dataTransfer.files[0];
+  if (file) decodeAudioFile(file);
+});
+
+$("demoBtn").addEventListener("click", makeDemoAudio);
+$("embedBtn").addEventListener("click", embedAction);
+$("extractBtn").addEventListener("click", extractAction);
+$("applyAttackBtn").addEventListener("click", applyAttack);
+$("restoreBtn").addEventListener("click", restoreEmbedded);
+$("resetBtn").addEventListener("click", resetExperiment);
+$("downloadBtn").addEventListener("click", downloadProcessed);
+
+$("playOriginalBtn").addEventListener("click", () => {
+  playSamples(state.original, state.sampleRate, "original");
+});
+
+$("pauseOriginalBtn").addEventListener("click", () => {
+  pauseSamples("original");
+});
+
+$("playOutputBtn").addEventListener("click", () => {
+  playSamples(state.processed, state.processedSampleRate || state.sampleRate, "processed");
+});
+
+$("pauseOutputBtn").addEventListener("click", () => {
+  pauseSamples("processed");
+});
+
+$("attackType").addEventListener("change", updateAttackFields);
+$("strength").addEventListener("input", updateSliderLabels);
+$("noiseLevel").addEventListener("input", updateSliderLabels);
+$("cutoff").addEventListener("input", updateSliderLabels);
+
+$("clearLogBtn").addEventListener("click", () => {
+  $("log").innerHTML = "";
+  log("Log cleared.");
+});
+
+window.addEventListener("resize", () => {
+  if (state.original) {
+    drawWaveCanvas($("inputWave"), state.original);
+  }
+  drawWaveCanvas($("outputWave"), state.processed);
+});
+
+function initialize() {
+  updateAttackFields();
+  updateSliderLabels();
+  drawWaveCanvas($("inputWave"), null);
+  drawWaveCanvas($("outputWave"), null);
+  refreshCharts();
+  resetBerChart();
+  updateButtons();
+  log("WaveLab initialized. Ready for audio input.", "ok");
+}
+
+initialize();
+</script>
+</body>
+</html>
